@@ -1,10 +1,11 @@
 from flask import Flask
+import os
 from flask_caching import Cache
 from Routes import user_routes, flight_routes, booking_routes, package_routes, hotels_routes, payment_routes
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
-
+port = int(os.environ.get("PORT", 10000))
 # Configure caching
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
@@ -22,4 +23,4 @@ def index():
     return "Welcome to the Flight Booking API!"
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=port)
