@@ -1,0 +1,97 @@
+<!-- passenger_payment_booking.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Flight Booking</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    let flightOffer = {/* Insert your flight offer JSON here */};
+
+    async function startBooking(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const passenger = {
+        firstName: formData.get("firstName"),
+        lastName: formData.get("lastName"),
+        dateOfBirth: formData.get("dob"),
+        gender: formData.get("gender"),
+        email: formData.get("email"),
+        phoneNumber: formData.get("phone"),
+        countryCode: formData.get("countryCode"),
+        nationality: formData.get("nationality"),
+        passportNumber: formData.get("passportNumber"),
+        passportExpiry: formData.get("passportExpiry"),
+        passportCountry: formData.get("passportCountry")
+      };
+
+      const payload = {
+        flightOffer,
+        passengers: [passenger]
+      };
+
+      const res = await fetch("http://127.0.0.1:5000/flights/start-booking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      const razorpayOptions = {
+        key: data.razorpay_key_id,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Trio Travels",
+        description: "Flight Booking Payment",
+        order_id: data.order_id,
+        handler: async function (response) {
+          const verifyRes = await fetch("http://127.0.0.1:5000/flights/complete-booking", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payment: response,
+              booking_id: data.booking_id
+            })
+          });
+
+          const result = await verifyRes.json();
+          alert("Ticket booked successfully!\nPDF: " + result.pdf_path);
+        },
+        prefill: {
+          name: passenger.firstName + " " + passenger.lastName,
+          email: passenger.email,
+          contact: passenger.phoneNumber
+        },
+        theme: { color: "#3399cc" }
+      };
+
+      const rzp = new Razorpay(razorpayOptions);
+      rzp.open();
+    }
+  </script>
+</head>
+<body>
+  <h2>Passenger Information</h2>
+  <form id="passengerForm" onsubmit="startBooking(event)">
+    <label>First Name: <input type="text" name="firstName" required></label><br>
+    <label>Last Name: <input type="text" name="lastName" required></label><br>
+    <label>Date of Birth: <input type="date" name="dob" required></label><br>
+    <label>Gender: 
+      <select name="gender">
+        <option value="MALE">Male</option>
+        <option value="FEMALE">Female</option>
+      </select>
+    </label><br>
+    <label>Email: <input type="email" name="email" required></label><br>
+    <label>Phone Number: <input type="text" name="phone" required></label><br>
+    <label>Country Code: <input type="text" name="countryCode" value="91" required></label><br>
+    <label>Nationality: <input type="text" name="nationality" value="IN" required></label><br>
+    <h4>Passport Info (Only for International)</h4>
+    <label>Passport Number: <input type="text" name="passportNumber"></label><br>
+    <label>Passport Expiry: <input type="date" name="passportExpiry"></label><br>
+    <label>Passport Country: <input type="text" name="passportCountry"></label><br>
+    <button type="submit">Proceed to Payment</button>
+  </form>
+</body>
+</html>

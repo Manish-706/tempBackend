@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Razorpay Test</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <button id="pay-btn">Pay 11,781</button>
+
+  <script>
+    document.getElementById('pay-btn').onclick = function () {
+      const options = {
+        "key": "rzp_test_cwytGMG7H8rA6c", // Replace with your test key
+        "amount": 1178100, // in paise (₹11934)
+        "currency": "INR",
+        "name": "Flight Booking",
+        "description": "Test Transaction",
+        "order_id": "order_QHJ4LPk0clT9jz", // your test order_id
+        "handler": function (response) {
+          alert("Payment ID: " + response.razorpay_payment_id);
+          alert("Order ID: " + response.razorpay_order_id);
+          alert("Signature: " + response.razorpay_signature);
+          console.log("Payment ID: " + response.razorpay_payment_id);
+          console.log("Signature: " + response.razorpay_signature);
+  
+          // You can now send response to /verify-payment
+        },
+        "prefill": {
+          "name": "Harshit",
+          "email": "test@example.com",
+          "contact": "9999999999"
+        },
+        "theme": {
+          "color": "#3399cc"
+        }
+      };
+      const rzp1 = new Razorpay(options);
+      rzp1.open();
+    };
+  </script>
+</body>
+</html>
